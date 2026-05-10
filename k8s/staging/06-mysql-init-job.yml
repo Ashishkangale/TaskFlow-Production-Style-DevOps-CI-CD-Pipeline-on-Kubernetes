@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-init
+  namespace: taskmanager-staging
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mysql-init
+          image: mysql:8.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for MySQL..."
+              until mysqladmin ping -h mysql-service -uroot -pz2x3c4v5 --silent; do
+                echo "MySQL not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "MySQL ready! Creating tables..."
+              mysql -h mysql-service -uroot -pz2x3c4v5 taskmanager << 'SQL'
+              CREATE TABLE IF NOT EXISTS users (
+                id         INT AUTO_INCREMENT PRIMARY KEY,
+                username   VARCHAR(50)  NOT NULL UNIQUE,
+                email      VARCHAR(100) NOT NULL UNIQUE,
+                password   VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              );
+              CREATE TABLE IF NOT EXISTS tasks (
+                id          INT AUTO_INCREMENT PRIMARY KEY,
+                user_id     INT NOT NULL,
+                title       VARCHAR(200) NOT NULL,
+                description TEXT,
+                status      ENUM('pending','in-progress','completed') DEFAULT 'pending',
+                priority    ENUM('low','medium','high') DEFAULT 'medium',
+                created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+              SQL
+              echo "Tables created!"

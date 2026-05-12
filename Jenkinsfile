@@ -18,21 +18,21 @@ pipeline {
 
     stages {
 
-        // ================= CHECKOUT =================
+//CHECKOUT STAGE 
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        // ================= INSTALL =================
+// INSTALL STAGE 
         stage('Install') {
             steps {
                 sh 'npm install'
             }
         }
 
-        // ================= BUILD IMAGE =================
+// BUILD IMAGE STAGE
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -43,7 +43,7 @@ pipeline {
             }
         }
 
-        // ================= PUSH IMAGE =================
+//PUSH IMAGE STAGE
         stage('Push Image') {
             steps {
                 sh '''
@@ -57,7 +57,7 @@ pipeline {
             }
         }
 
-        // ================= DEV =================
+//DEV STAGE
         stage('Deploy DEV') {
             steps {
                 sh '''
@@ -75,7 +75,7 @@ pipeline {
             }
         }
 
-        // ================= STAGING =================
+//STAGING STAGE
         stage('Deploy STAGING') {
             steps {
                 sh '''
@@ -91,14 +91,14 @@ pipeline {
             }
         }
 
-        // ================= APPROVAL =================
+//APPROVAL STAGE
         stage('Approval') {
             steps {
                 input message: 'Deploy to PRODUCTION?'
             }
         }
 
-        // ================= PRODUCTION =================
+//PRODUCTION STAGE
         stage('Deploy PROD') {
             steps {
 
@@ -114,7 +114,7 @@ pipeline {
         }
     }
 
-    // ================= POST =================
+//POST STAGE
     post {
         always {
             echo 'Pipeline Finished'
